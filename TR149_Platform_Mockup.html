@@ -157,8 +157,9 @@
   .chat-bubble{padding:10px 13px;border-radius:12px;font-size:12.8px;line-height:1.55;}
   .chat-bubble.agent-bubble{background:var(--ai-light);color:#1F5057;border-bottom-left-radius:4px;}
   .chat-bubble.user-bubble{background:var(--primary-light);color:var(--text);border-bottom-right-radius:4px;}
-  .chat-input-row{display:flex;gap:8px;margin-top:14px;}
-  .chat-input-row input{flex:1;}
+  .chat-input-row{display:flex;gap:8px;margin-top:14px;align-items:flex-end;}
+  .chat-input-row input, .chat-input-row textarea{flex:1;}
+  #ace-chat-input{min-height:74px;max-height:160px;line-height:1.45;}
   .checklist-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #F0F1F3;}
   .checklist-item:last-child{border-bottom:none;}
   .checklist-item input[type=checkbox]{margin-top:2px;width:auto;}
@@ -261,7 +262,7 @@
             </div>
           </div>
           <div class="chat-input-row">
-            <input type="text" id="ace-chat-input" placeholder="Reply to the onboarding agent..." onkeydown="if(event.key==='Enter'){aceSend();}">
+            <textarea id="ace-chat-input" rows="3" placeholder="Reply to the onboarding agent...  (Enter to send, Shift+Enter for a new line)" oninput="aceAutoGrow(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aceSend();}"></textarea>
             <button class="btn btn-primary btn-sm" id="ace-send-btn" onclick="aceSend()">Send</button>
           </div>
           <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="ace-status">Backend not reachable yet — run server.js locally with an ANTHROPIC_API_KEY, then open this page from http://localhost:8787.</div>
@@ -836,6 +837,12 @@
     return msg;
   }
 
+  // Grow the reply box with its content, from ~3 lines up to the CSS max-height.
+  function aceAutoGrow(el){
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
   async function aceScrape(){
     const urlInput = document.getElementById('ace-url-input');
     const url = urlInput.value.trim();
@@ -857,6 +864,7 @@
       }
       const input = document.getElementById('ace-chat-input');
       input.value = data.intro || '';
+      aceAutoGrow(input);
       input.focus();
       status.textContent = 'Pre-filled from ' + (data.title || url) + '. Have a look, edit if needed, then hit Send.';
     } catch(err){
@@ -874,6 +882,7 @@
     aceAppendBubble('user', text);
     aceHistory.push({role:'user', content: text});
     input.value = '';
+    aceAutoGrow(input);
     aceBusy = true;
     document.getElementById('ace-send-btn').disabled = true;
     const typing = aceAppendBubble('agent', 'Thinking…');
