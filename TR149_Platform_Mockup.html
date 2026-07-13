@@ -235,7 +235,6 @@
     <div class="topbar">
       <div class="crumb">ACE &nbsp;/&nbsp; <b id="crumb-current">Company Onboarding</b></div>
       <div class="topbar-right">
-        <div class="pill">✦ AI Copilot active</div>
         <div class="avatar">GW</div>
       </div>
     </div>
@@ -250,7 +249,7 @@
         </div>
 
         <div class="card">
-          <h3>ACE Onboarding Agent <span class="count" id="ace-live-badge">live · calls /api/chat</span></h3>
+          <h3>ACE Onboarding Agent</h3>
           <div class="chat-input-row" style="margin-bottom:12px;">
             <input type="text" id="ace-url-input" placeholder="Paste your company website (e.g. https://acme.com) to pre-fill the intro..." onkeydown="if(event.key==='Enter'){aceScrape();}">
             <button class="btn btn-sm" id="ace-url-btn" onclick="aceScrape()">Pre-fill from website</button>
@@ -265,7 +264,7 @@
             <textarea id="ace-chat-input" rows="3" placeholder="Reply to the onboarding agent...  (Enter to send, Shift+Enter for a new line)" oninput="aceAutoGrow(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aceSend();}"></textarea>
             <button class="btn btn-primary btn-sm" id="ace-send-btn" onclick="aceSend()">Send</button>
           </div>
-          <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="ace-status">Backend not reachable yet — run server.js locally with an ANTHROPIC_API_KEY, then open this page from http://localhost:8787.</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="ace-status"></div>
         </div>
 
         <div class="ai-box" id="ace-checklist-status">
