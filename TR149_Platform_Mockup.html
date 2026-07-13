@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ACE — Agentic Compliance Engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --primary:#526D91;
+    --primary-dark:#3A4E6B;
+    --primary-light:#EAEFF5;
+    --ai:#5FB8C4;
+    --ai-light:#E9F7F8;
+    --bg:#F5F6F8;
+    --card:#FFFFFF;
+    --border:#E4E7EB;
+    --text:#1F2430;
+    --muted:#6B7280;
+    --danger:#DC2626;
+    --danger-light:#FDECEC;
+    --warning:#B45309;
+    --warning-light:#FEF3E2;
+    --success:#15803D;
+    --success-light:#E9F8EE;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+  a{color:inherit;}
+
+  /* Layout */
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:250px;flex-shrink:0;background:var(--primary-dark);color:#EAF3ED;display:flex;flex-direction:column;padding:18px 0;}
+  .sidebar .brand{display:flex;align-items:center;gap:10px;padding:0 18px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.12);margin-bottom:12px;}
+  .sidebar .brand .logo{width:32px;height:32px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px;}
+  .sidebar .brand .name{font-weight:700;font-size:14.5px;line-height:1.2;}
+  .sidebar .brand .sub{font-size:11px;color:#9FCBD1;}
+  .nav-group{margin-bottom:6px;}
+  .nav-group-title{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#8CA9BB;padding:14px 18px 6px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;color:#D9E3EA;font-size:13.3px;border-left:3px solid transparent;}
+  .nav-item .dot{width:6px;height:6px;border-radius:50%;background:#6F94A8;flex-shrink:0;}
+  .nav-item:hover{background:rgba(255,255,255,0.06);}
+  .nav-item.active{background:rgba(255,255,255,0.1);border-left-color:#6FD4DE;color:#fff;font-weight:600;}
+  .nav-item.active .dot{background:#6FD4DE;}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .topbar{height:58px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;}
+  .crumb{font-size:12.5px;color:var(--muted);}
+  .crumb b{color:var(--text);}
+  .topbar-right{display:flex;align-items:center;gap:14px;}
+  .pill{display:flex;align-items:center;gap:6px;background:var(--ai-light);color:var(--ai);font-weight:600;font-size:12px;padding:5px 10px;border-radius:20px;}
+  .avatar{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+
+  .content{padding:26px 30px 60px;overflow-y:auto;}
+  .screen{display:none;max-width:1180px;}
+  .screen.active{display:block;}
+  .screen-header{margin-bottom:20px;}
+  .screen-header h1{font-size:20px;margin:0 0 4px;}
+  .screen-header p{margin:0;color:var(--muted);font-size:13px;max-width:760px;line-height:1.5;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px;}
+  .card h3{margin:0 0 12px;font-size:14px;}
+  .card h3 .count{color:var(--muted);font-weight:400;font-size:12px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+
+  label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+  input[type=text], input[type=date], select, textarea{
+    width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;background:#fcfcfd;color:var(--text);
+  }
+  textarea{resize:vertical;min-height:56px;}
+  .field{margin-bottom:14px;}
+  .checks label{display:flex;align-items:center;gap:8px;font-weight:400;color:var(--text);font-size:13px;margin-bottom:8px;}
+  .checks input{width:auto;}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:#fff;color:var(--text);padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .btn:hover{background:#f5f5f5;}
+  .btn-primary{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-ai{background:var(--ai);border-color:var(--ai);color:#fff;}
+  .btn-ai:hover{background:#489AA5;}
+  .btn-danger-outline{border-color:var(--danger);color:var(--danger);background:#fff;}
+  .btn-sm{padding:5px 10px;font-size:11.5px;}
+  .btn-row{display:flex;gap:8px;margin-top:6px;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.8px;}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:11.3px;text-transform:uppercase;letter-spacing:.03em;padding:8px 10px;border-bottom:1px solid var(--border);}
+  td{padding:10px 10px;border-bottom:1px solid #F0F1F3;vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge-green{background:var(--success-light);color:var(--success);}
+  .badge-amber{background:var(--warning-light);color:var(--warning);}
+  .badge-red{background:var(--danger-light);color:var(--danger);}
+  .badge-gray{background:#EFF0F2;color:var(--muted);}
+  .badge-ai{background:var(--ai-light);color:var(--ai);}
+  .badge-blue{background:#E8F0FE;color:#1D4ED8;}
+
+  .ai-box{background:var(--ai-light);border:1px solid #C7E9EC;border-radius:var(--radius);padding:14px 16px;margin-top:10px;}
+  .ai-box .ai-head{display:flex;align-items:center;gap:8px;font-weight:700;color:#39909B;font-size:12.5px;margin-bottom:6px;}
+  .ai-spark{width:18px;height:18px;border-radius:5px;background:var(--ai);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+  .ai-box p{margin:0 0 6px;font-size:12.8px;color:#1F5057;line-height:1.5;}
+  .conf-bar{height:6px;background:#C7E9EC;border-radius:4px;overflow:hidden;margin:8px 0;}
+  .conf-bar span{display:block;height:100%;background:var(--ai);}
+
+  .hitl{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;}
+  .hitl b{color:var(--text);}
+
+  .stat-row{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+  .stat{flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+  .stat .num{font-size:22px;font-weight:700;}
+  .stat .lbl{font-size:11.5px;color:var(--muted);margin-top:2px;}
+
+  .progressbar{height:8px;background:#EFF0F2;border-radius:5px;overflow:hidden;}
+  .progressbar span{display:block;height:100%;background:var(--primary);}
+
+  .maturity-track{display:flex;gap:6px;margin:14px 0;}
+  .maturity-step{flex:1;text-align:center;padding:10px 6px;border-radius:8px;background:#F1F2F4;color:var(--muted);font-size:12px;font-weight:700;border:2px solid transparent;}
+  .maturity-step.reached{background:#F1F2F4;color:var(--text);}
+  .maturity-step.current{border-color:var(--ai);background:var(--ai-light);color:var(--ai);}
+
+  .dropzone{border:2px dashed #C9CDD3;border-radius:var(--radius);padding:26px;text-align:center;color:var(--muted);font-size:12.8px;background:#FAFAFB;margin-bottom:14px;}
+  .dropzone b{color:var(--text);}
+
+  .filerow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F0F1F3;}
+  .filerow:last-child{border-bottom:none;}
+  .fileinfo{display:flex;align-items:center;gap:10px;}
+  .fileicon{width:32px;height:32px;border-radius:7px;background:#EFF0F2;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+  .filename{font-weight:600;font-size:12.8px;}
+  .filemeta{font-size:11.3px;color:var(--muted);}
+
+  .tag{display:inline-flex;align-items:center;gap:5px;background:#EFF0F2;border-radius:6px;padding:3px 8px;font-size:11.3px;font-weight:600;color:var(--text);}
+
+  .qcard{border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+  .qcard .qtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;}
+  .qcard .qtext{font-weight:600;font-size:13.5px;}
+  .qcard .qarea{font-size:11.3px;color:var(--muted);margin-bottom:8px;}
+  .qcard .example{font-size:12px;color:var(--muted);background:#FAFAFB;border-left:3px solid var(--border);padding:8px 10px;border-radius:0 6px 6px 0;margin-top:8px;}
+
+  .timeline{border-left:2px solid var(--border);margin-left:6px;padding-left:20px;}
+  .tl-item{position:relative;padding-bottom:18px;}
+  .tl-item::before{content:"";position:absolute;left:-25px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--primary);}
+  .tl-item .tl-meta{font-size:11.3px;color:var(--muted);margin-top:2px;}
+  .tl-item .tl-body{font-size:13px;}
+
+  .note-banner{background:#FFFBEA;border:1px solid #F3E3A3;color:#7A5D00;border-radius:var(--radius);padding:10px 14px;font-size:12px;margin-bottom:20px;}
+
+  .kpi-donut{width:76px;height:76px;border-radius:50%;flex-shrink:0;}
+
+  .chat-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:6px;}
+  .chat-msg{display:flex;gap:10px;max-width:78%;}
+  .chat-msg.agent{align-self:flex-start;}
+  .chat-msg.user{align-self:flex-end;flex-direction:row-reverse;}
+  .chat-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+  .chat-avatar.agent-avatar{background:var(--ai);}
+  .chat-avatar.user-avatar{background:var(--primary);}
+  .chat-bubble{padding:10px 13px;border-radius:12px;font-size:12.8px;line-height:1.55;}
+  .chat-bubble.agent-bubble{background:var(--ai-light);color:#1F5057;border-bottom-left-radius:4px;}
+  .chat-bubble.user-bubble{background:var(--primary-light);color:var(--text);border-bottom-right-radius:4px;}
+  .chat-input-row{display:flex;gap:8px;margin-top:14px;}
+  .chat-input-row input{flex:1;}
+  .checklist-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #F0F1F3;}
+  .checklist-item:last-child{border-bottom:none;}
+  .checklist-item input[type=checkbox]{margin-top:2px;width:auto;}
+  .checklist-domain{font-size:10.3px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ai);margin:14px 0 2px;}
+  .checklist-domain:first-child{margin-top:0;}
+
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-thumb{background:#D2D5DA;border-radius:6px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="logo">A</div>
+      <div>
+        <div class="name">ACE</div>
+        <div class="sub">Agentic Compliance Engine</div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Onboarding</div>
+      <div class="nav-item active" onclick="showScreen('onboarding', this)"><span class="dot"></span>Company Onboarding</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Setup</div>
+      <div class="nav-item" onclick="showScreen('project-setup', this)"><span class="dot"></span>Project Setup</div>
+      <div class="nav-item" onclick="showScreen('scope-setup', this)"><span class="dot"></span>Scope Setup</div>
+      <div class="nav-item" onclick="showScreen('owner-assignment', this)"><span class="dot"></span>Owner Assignment</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Assessment</div>
+      <div class="nav-item" onclick="showScreen('guided-assessment', this)"><span class="dot"></span>Guided Assessment</div>
+      <div class="nav-item" onclick="showScreen('evidence-upload', this)"><span class="dot"></span>Evidence Upload &amp; AI Mapping</div>
+      <div class="nav-item" onclick="showScreen('env-data', this)"><span class="dot"></span>Environmental Data</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Review</div>
+      <div class="nav-item" onclick="showScreen('ai-maturity', this)"><span class="dot"></span>AI Suggested Maturity</div>
+      <div class="nav-item" onclick="showScreen('reviewer-approval', this)"><span class="dot"></span>Reviewer Approval</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Improve</div>
+      <div class="nav-item" onclick="showScreen('gap-roadmap', this)"><span class="dot"></span>Gap Register &amp; Roadmap</div>
+      <div class="nav-item" onclick="showScreen('mgmt-summary', this)"><span class="dot"></span>Management Summary</div>
+    </div>
+
+    <!-- Hidden for now — restore to bring back these sections.
+    <div class="nav-group">
+      <div class="nav-group-title">Extended Scope</div>
+      <div class="nav-item" onclick="showScreen('supplier-q', this)"><span class="dot"></span>Supplier Questionnaire</div>
+      <div class="nav-item" onclick="showScreen('product-lifecycle', this)"><span class="dot"></span>Product Lifecycle</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Admin</div>
+      <div class="nav-item" onclick="showScreen('template-version', this)"><span class="dot"></span>Template Version History</div>
+      <div class="nav-item" onclick="showScreen('audit-trail', this)"><span class="dot"></span>Audit Trail</div>
+    </div>
+    -->
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">ACE &nbsp;/&nbsp; <b id="crumb-current">Company Onboarding</b></div>
+      <div class="topbar-right">
+        <div class="pill">✦ AI Copilot active</div>
+        <div class="avatar">GW</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- 0. COMPANY ONBOARDING -->
+      <div class="screen active" id="onboarding">
+        <div class="screen-header">
+          <h1>Company Onboarding</h1>
+          <p>An agentic chatbot collects your company background in plain conversation, then generates a tailored TR149 checklist to kick off the assessment.</p>
+        </div>
+
+        <div class="card">
+          <h3>ACE Onboarding Agent <span class="count" id="ace-live-badge">live · calls /api/chat</span></h3>
+          <div class="chat-wrap" id="ace-chat-wrap">
+            <div class="chat-msg agent">
+              <div class="chat-avatar agent-avatar">✦</div>
+              <div class="chat-bubble agent-bubble">Hi, I'm the ACE Onboarding Agent. Tell me a bit about your company — industry, size, sites, and what you do — and I'll set up a tailored TR149 checklist for you.</div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="ace-chat-input" placeholder="Reply to the onboarding agent..." onkeydown="if(event.key==='Enter'){aceSend();}">
+            <button class="btn btn-primary btn-sm" id="ace-send-btn" onclick="aceSend()">Send</button>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="ace-status">Backend not reachable yet — run server.js locally with an ANTHROPIC_API_KEY, then open this page from http://localhost:8787.</div>
+        </div>
+
+        <div class="ai-box" id="ace-checklist-status">
+          <div class="ai-head"><span class="ai-spark">✦</span>Checklist Agent</div>
+          <p id="ace-checklist-status-text">Waiting for enough information — chat with the agent above to generate your TR149 checklist.</p>
+          <div class="hitl">🛈 <b>Human-in-the-loop:</b> Sustainability Lead reviews and adjusts the checklist before it becomes the project scope.</div>
+        </div>
+
+        <div class="card" id="ace-checklist-card" style="display:none;">
+          <h3>Draft TR149 Checklist <span class="count" id="ace-checklist-count"></span></h3>
+          <div id="ace-checklist-body"></div>
+          <div class="btn-row"><button class="btn btn-primary">Accept Checklist &amp; Create Project →</button><button class="btn btn-sm" onclick="document.getElementById('ace-checklist-card').style.display='none'">Edit items</button></div>
+        </div>
+      </div>
+
+      <!-- 1. PROJECT SETUP -->
+      <div class="screen" id="project-setup">
+        <div class="screen-header">
+          <h1>Project Setup</h1>
+          <p>Start a new TR149 assessment project. Capture the organisation, industry, assessment period, site, and selected template so the platform can tailor the flow. (US-01, US-03)</p>
+        </div>
+
+        <div class="card">
+          <h3>Organisation Profile</h3>
+          <div class="grid2">
+            <div class="field"><label>Company name</label><input type="text" value="Meridian Manufacturing Pte Ltd"></div>
+            <div class="field"><label>Industry</label><select><option>Manufacturing — Electronics</option></select></div>
+            <div class="field"><label>Primary site</label><select><option>Tuas Assembly Plant</option><option>Changi Logistics Hub</option></select></div>
+            <div class="field"><label>Departments in scope</label><input type="text" value="Operations, Procurement, HR, Facilities"></div>
+            <div class="field"><label>Assessment period</label><input type="date" value="2026-07-10"></div>
+            <div class="field"><label>Business activities</label><input type="text" value="Electronics assembly, packaging, distribution"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Select TR149 Template</h3>
+          <table>
+            <tr><th>Template</th><th>Dimensions</th><th>Version</th><th>Status</th><th></th></tr>
+            <tr><td><b>TR149 Standard Template</b><br><span class="filemeta">Domains, questions, evidence areas, report sections</span></td><td>5 dimensions</td><td>v1.2</td><td><span class="badge badge-green">Current</span></td><td><button class="btn btn-primary btn-sm">Select</button></td></tr>
+            <tr><td>TR149 Lite (SME)</td><td>3 dimensions</td><td>v1.0</td><td><span class="badge badge-gray">Available</span></td><td><button class="btn btn-sm">Select</button></td></tr>
+          </table>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>TR149 Guide Agent</div>
+          <p>Based on this company profile (electronics manufacturing, 2 sites), I suggest including <b>Supplier Sustainability</b> and <b>Product Life Cycle</b> areas, and flag <b>Waste &amp; Materials</b> as high-relevance for this industry.</p>
+          <div class="btn-row"><button class="btn btn-ai btn-sm">Apply suggestion</button><button class="btn btn-sm">Dismiss</button></div>
+          <div class="hitl">🛈 <b>Human-in-the-loop:</b> User confirms interpretation before setup continues.</div>
+        </div>
+
+        <div class="btn-row"><button class="btn btn-primary">Create Project →</button><button class="btn">Save as draft</button></div>
+      </div>
+
+      <!-- 2. SCOPE SETUP -->
+      <div class="screen" id="scope-setup">
+        <div class="screen-header">
+          <h1>Scope Setup</h1>
+          <p>Define what is included and excluded before scoring starts — entity, site, department, product, and supplier boundary. (US-04)</p>
+        </div>
+
+        <div class="card">
+          <h3>Assessment Boundary</h3>
+          <div class="grid2">
+            <div>
+              <div class="field checks">
+                <label>Included sites</label>
+                <label><input type="checkbox" checked> Tuas Assembly Plant</label>
+                <label><input type="checkbox" checked> Changi Logistics Hub</label>
+                <label><input type="checkbox"> Penang Contract Facility (3rd party)</label>
+              </div>
+            </div>
+            <div>
+              <div class="field checks">
+                <label>Included departments</label>
+                <label><input type="checkbox" checked> Operations</label>
+                <label><input type="checkbox" checked> Procurement</label>
+                <label><input type="checkbox" checked> HR</label>
+                <label><input type="checkbox"> Finance</label>
+              </div>
+            </div>
+          </div>
+          <div class="field"><label>Product / service boundary</label><input type="text" value="Consumer electronics assembly line A & B"></div>
+          <div class="field"><label>Supplier boundary</label><input type="text" value="Tier-1 suppliers with >5% spend share"></div>
+        </div>
+
+        <div class="card">
+          <h3>Exclusions <span class="count">2 recorded</span></h3>
+          <table>
+            <tr><th>Excluded item</th><th>Reason</th><th>Status</th></tr>
+            <tr><td>Penang Contract Facility</td><td>Operated by third-party contractor, no data access</td><td><span class="badge badge-amber">Needs review</span></td></tr>
+            <tr><td>Legacy Product Line C</td><td>Discontinued Q1 2026</td><td><span class="badge badge-green">Clear</span></td></tr>
+          </table>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Reviewer Assistant Agent</div>
+          <p>The exclusion "Penang Contract Facility" doesn't state whether Tier-1 supplier obligations still apply. Consider clarifying before locking scope.</p>
+          <div class="hitl">🛈 Reviewer Assistant Agent flags unclear exclusions — final wording confirmed by Sustainability Lead.</div>
+        </div>
+
+        <div class="btn-row"><button class="btn btn-primary">Approve Scope →</button><button class="btn">Save as draft</button></div>
+      </div>
+
+      <!-- 3. OWNER ASSIGNMENT -->
+      <div class="screen" id="owner-assignment">
+        <div class="screen-header">
+          <h1>Owner Assignment</h1>
+          <p>Assign TR149 areas to owners so questions and evidence requests reach the right people. (US-05)</p>
+        </div>
+
+        <div class="card">
+          <table>
+            <tr><th>TR149 Area</th><th>Domain</th><th>Suggested owner</th><th>Assigned to</th><th>Due date</th><th>Status</th></tr>
+            <tr><td>Energy &amp; Emissions</td><td>Operations</td><td><span class="badge badge-ai">✦ AI: Ops Manager</span></td><td><select><option>Wei Ling (Ops)</option></select></td><td>28 Jul 2026</td><td><span class="badge badge-green">Assigned</span></td></tr>
+            <tr><td>Supplier Sustainability</td><td>Procurement</td><td><span class="badge badge-ai">✦ AI: Procurement Lead</span></td><td><select><option>Daniel Ong (Procurement)</option></select></td><td>28 Jul 2026</td><td><span class="badge badge-green">Assigned</span></td></tr>
+            <tr><td>People &amp; Workplace</td><td>HR</td><td><span class="badge badge-ai">✦ AI: HR Business Partner</span></td><td><select><option>— Unassigned —</option></select></td><td>—</td><td><span class="badge badge-amber">Pending</span></td></tr>
+            <tr><td>Waste &amp; Materials</td><td>Facilities</td><td><span class="badge badge-ai">✦ AI: Facilities Manager</span></td><td><select><option>Priya Nair (Facilities)</option></select></td><td>04 Aug 2026</td><td><span class="badge badge-green">Assigned</span></td></tr>
+            <tr><td>Product Life Cycle</td><td>Product</td><td><span class="badge badge-ai">✦ AI: Product Owner</span></td><td><select><option>— Unassigned —</option></select></td><td>—</td><td><span class="badge badge-amber">Pending</span></td></tr>
+          </table>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Roadmap Agent</div>
+          <p>Suggested owners are based on domain match (HR, Ops, Procurement, Product). 2 areas still need an owner before the guided assessment can be sent out.</p>
+        </div>
+        <div class="btn-row"><button class="btn btn-primary">Notify Owners →</button></div>
+      </div>
+
+      <!-- 4. GUIDED ASSESSMENT -->
+      <div class="screen" id="guided-assessment">
+        <div class="screen-header">
+          <h1>Guided Assessment</h1>
+          <p>TR149 requirements turned into simple guided questions, grouped by area, with plain-language explanations and example evidence. (US-06, US-07, US-08)</p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><div class="num">18 / 32</div><div class="lbl">Questions answered</div></div>
+          <div class="stat"><div class="num">6</div><div class="lbl">Unanswered</div></div>
+          <div class="stat"><div class="num">8</div><div class="lbl">Answered without evidence</div></div>
+        </div>
+
+        <div class="qcard">
+          <div class="qtop">
+            <div><div class="qarea">Energy &amp; Emissions · Owner: Wei Ling</div><div class="qtext">Does your organisation track monthly electricity consumption across all included sites?</div></div>
+            <span class="badge badge-green">Answered</span>
+          </div>
+          <textarea>Yes, monthly electricity usage is tracked via utility bills for Tuas and Changi sites and consolidated in a spreadsheet by Facilities.</textarea>
+          <div class="example">💡 Example evidence: utility bills, energy meter exports, sustainability dashboard screenshots.</div>
+        </div>
+
+        <div class="qcard">
+          <div class="qtop">
+            <div><div class="qarea">Supplier Sustainability · Owner: Daniel Ong</div><div class="qtext">Do you require Tier-1 suppliers to disclose environmental or sustainability data?</div></div>
+            <span class="badge badge-amber">Weak — no evidence</span>
+          </div>
+          <textarea>Some suppliers provide this informally.</textarea>
+          <div class="example">💡 Example evidence: supplier questionnaire responses, ESG certificates, contract clauses.</div>
+        </div>
+
+        <div class="qcard">
+          <div class="qtop">
+            <div><div class="qarea">Waste &amp; Materials · Owner: Priya Nair</div><div class="qtext">Is packaging waste from production measured and reported?</div></div>
+            <span class="badge badge-red">Unanswered</span>
+          </div>
+          <textarea placeholder="Type your answer here..."></textarea>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Gap Analysis Agent</div>
+          <p>6 questions remain unanswered and 8 answers lack supporting evidence — mostly in Supplier Sustainability and Waste &amp; Materials. These are likely to become gaps.</p>
+        </div>
+        <div class="btn-row"><button class="btn btn-primary">Save Draft</button><button class="btn">Submit for Review</button></div>
+      </div>
+
+      <!-- 5. EVIDENCE UPLOAD & AI MAPPING -->
+      <div class="screen" id="evidence-upload">
+        <div class="screen-header">
+          <h1>Evidence Upload &amp; AI Mapping</h1>
+          <p>Upload supporting files. AI suggests which TR149 area each file belongs to — accept, adjust, or reject the mapping. (US-09, US-10)</p>
+        </div>
+
+        <div class="dropzone">📁 Drag files here or <b>browse</b> — policies, bills, reports, supplier forms, product documents</div>
+
+        <div class="card">
+          <h3>Uploaded Files <span class="count">4</span></h3>
+
+          <div class="filerow">
+            <div class="fileinfo"><div class="fileicon">📄</div><div><div class="filename">Q2_Electricity_Bill_Tuas.pdf</div><div class="filemeta">Uploaded by Wei Ling · 2.1MB</div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="tag">✦ Energy &amp; Emissions <span style="color:var(--ai)">92%</span></span>
+              <button class="btn btn-sm btn-primary">Accept</button><button class="btn btn-sm">Adjust</button>
+            </div>
+          </div>
+
+          <div class="filerow">
+            <div class="fileinfo"><div class="fileicon">📊</div><div><div class="filename">Supplier_ESG_Response_Acme.xlsx</div><div class="filemeta">Uploaded by Daniel Ong · 640KB</div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="tag">✦ Supplier Sustainability <span style="color:var(--ai)">87%</span></span>
+              <button class="btn btn-sm btn-primary">Accept</button><button class="btn btn-sm">Adjust</button>
+            </div>
+          </div>
+
+          <div class="filerow">
+            <div class="fileinfo"><div class="fileicon">📄</div><div><div class="filename">Waste_Disposal_Contract_2026.pdf</div><div class="filemeta">Uploaded by Priya Nair · 1.4MB</div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="tag" style="background:var(--warning-light);color:var(--warning);">✦ Uncertain <span>54%</span></span>
+              <button class="btn btn-sm">Review</button>
+            </div>
+          </div>
+
+          <div class="filerow">
+            <div class="fileinfo"><div class="fileicon">🖼️</div><div><div class="filename">HR_Policy_Wellbeing.docx</div><div class="filemeta">Uploaded by HR · 300KB</div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="badge badge-green">✓ Mapped: People &amp; Workplace</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Evidence Extraction &amp; Mapping Agent</div>
+          <p>Extracted key facts from 4 files and suggested TR149 area links. "Waste_Disposal_Contract_2026.pdf" has low confidence — recommend manual review before mapping.</p>
+          <div class="hitl">🛈 Reviewer approves evidence relevance before it can influence scoring.</div>
+        </div>
+      </div>
+
+      <!-- 6. ENVIRONMENTAL DATA -->
+      <div class="screen" id="env-data">
+        <div class="screen-header">
+          <h1>Environmental Data Extraction</h1>
+          <p>Extracted energy, water, material, and emissions usage from uploaded files. AI flags missing periods, unit issues, and unusual spikes. (US-11, US-12)</p>
+        </div>
+
+        <div class="card">
+          <h3>Utility &amp; Usage Records</h3>
+          <table>
+            <tr><th>Period</th><th>Type</th><th>Usage</th><th>Unit</th><th>Source</th><th>Flag</th></tr>
+            <tr><td>Jan 2026</td><td>Electricity</td><td>48,210</td><td>kWh</td><td>Q1_Electricity_Bill.pdf</td><td><span class="badge badge-green">OK</span></td></tr>
+            <tr><td>Feb 2026</td><td>Electricity</td><td>47,900</td><td>kWh</td><td>Q1_Electricity_Bill.pdf</td><td><span class="badge badge-green">OK</span></td></tr>
+            <tr><td>Mar 2026</td><td>Electricity</td><td>—</td><td>—</td><td>—</td><td><span class="badge badge-red">Missing period</span></td></tr>
+            <tr><td>Apr 2026</td><td>Electricity</td><td>112,400</td><td>kWh</td><td>Q2_Electricity_Bill_Tuas.pdf</td><td><span class="badge badge-amber">Spike +134%</span></td></tr>
+            <tr><td>Jan 2026</td><td>Water</td><td>3,120</td><td>m³</td><td>Water_Utility_Jan.pdf</td><td><span class="badge badge-green">OK</span></td></tr>
+            <tr><td>Feb 2026</td><td>Water</td><td>3.2</td><td>ML</td><td>Water_Utility_Feb.pdf</td><td><span class="badge badge-amber">Unit mismatch</span></td></tr>
+          </table>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Environmental Data Agent</div>
+          <p>Detected 1 missing period (Mar 2026 electricity), 1 unusual spike (Apr 2026, +134% vs. baseline), and 1 unit mismatch (Feb 2026 water reported in ML instead of m³). Normalisation suggested.</p>
+          <div class="btn-row"><button class="btn btn-ai btn-sm">Normalise units</button><button class="btn btn-sm">Request missing data</button></div>
+          <div class="hitl">🛈 Data Owner verifies figures before they're used in scoring.</div>
+        </div>
+      </div>
+
+      <!-- 7. AI SUGGESTED MATURITY -->
+      <div class="screen" id="ai-maturity">
+        <div class="screen-header">
+          <h1>AI Suggested Maturity</h1>
+          <p>AI suggests a maturity level based on answers and approved evidence, with rationale and confidence — always marked as AI-suggested. (US-13)</p>
+        </div>
+
+        <div class="card">
+          <h3>Overall Maturity — Supplier Sustainability Domain</h3>
+          <div class="maturity-track">
+            <div class="maturity-step reached">Essential</div>
+            <div class="maturity-step current">Bronze<br><span style="font-size:10px;font-weight:400;">AI-suggested</span></div>
+            <div class="maturity-step">Silver</div>
+            <div class="maturity-step">Gold</div>
+          </div>
+
+          <div class="ai-box">
+            <div class="ai-head"><span class="ai-spark">✦</span>Maturity Assessment Agent — AI-suggested</div>
+            <p><b>Suggested level: Bronze.</b> Rationale: organisation collects supplier ESG data informally but lacks a documented supplier code of conduct and consistent evidence across Tier-1 suppliers. 2 of 3 required criteria met with approved evidence.</p>
+            <div class="conf-bar"><span style="width:71%;"></span></div>
+            <div style="font-size:11.5px;color:var(--ai);">Confidence: 71%</div>
+            <div style="margin-top:8px;font-size:12px;">Supporting evidence: <span class="tag">Supplier_ESG_Response_Acme.xlsx</span> <span class="tag">Q06 answer</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>All Domains</h3>
+          <table>
+            <tr><th>Domain</th><th>AI-suggested level</th><th>Confidence</th><th>Reviewer status</th></tr>
+            <tr><td>Energy &amp; Emissions</td><td><span class="badge" style="background:#E3D6B0;color:#7A5A00;">Silver</span></td><td>84%</td><td><span class="badge badge-green">Confirmed</span></td></tr>
+            <tr><td>Supplier Sustainability</td><td><span class="badge" style="background:#E8CBA3;color:#7A4A10;">Bronze</span></td><td>71%</td><td><span class="badge badge-amber">Pending review</span></td></tr>
+            <tr><td>Waste &amp; Materials</td><td><span class="badge badge-gray">Essential</span></td><td>63%</td><td><span class="badge badge-amber">Pending review</span></td></tr>
+            <tr><td>People &amp; Workplace</td><td><span class="badge" style="background:#E3D6B0;color:#7A5A00;">Silver</span></td><td>79%</td><td><span class="badge badge-green">Confirmed</span></td></tr>
+          </table>
+        </div>
+        <div class="hitl">🛈 AI suggestion is not final — reviewer confirmation required before it counts toward scoring.</div>
+      </div>
+
+      <!-- 8. REVIEWER APPROVAL -->
+      <div class="screen" id="reviewer-approval">
+        <div class="screen-header">
+          <h1>Reviewer Approval</h1>
+          <p>The human review checkpoint. Approve, adjust, or reject AI suggestions, add notes, and record the final decision. (US-14, US-15)</p>
+        </div>
+
+        <div class="card">
+          <h3>Pending Review <span class="count">3 items</span></h3>
+          <table>
+            <tr><th>Item</th><th>Type</th><th>AI Suggestion</th><th>Submitted by</th><th></th></tr>
+            <tr><td>Supplier Sustainability — maturity level</td><td>Maturity</td><td>Bronze (71%)</td><td>System · AI</td><td><button class="btn btn-sm">Open</button></td></tr>
+            <tr><td>Waste_Disposal_Contract_2026.pdf</td><td>Evidence mapping</td><td>Uncertain (54%)</td><td>Priya Nair</td><td><button class="btn btn-sm">Open</button></td></tr>
+            <tr><td>Waste &amp; Materials — maturity level</td><td>Maturity</td><td>Essential (63%)</td><td>System · AI</td><td><button class="btn btn-sm">Open</button></td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>Review: Supplier Sustainability — Maturity Level</h3>
+          <div class="ai-box" style="margin-top:0;">
+            <div class="ai-head"><span class="ai-spark">✦</span>Reviewer Assistant Agent</div>
+            <p>Assumption to check: informal supplier disclosure was treated as partial evidence. Weak evidence: no signed supplier code of conduct on file. Risk: level may be optimistic without it.</p>
+          </div>
+          <div class="field" style="margin-top:14px;"><label>Decision</label>
+            <div class="btn-row">
+              <button class="btn btn-primary btn-sm">✓ Accept</button>
+              <button class="btn btn-sm">↕ Override level</button>
+              <button class="btn-danger-outline btn btn-sm">✕ Reject</button>
+            </div>
+          </div>
+          <div class="field"><label>Reviewer notes (required for override/reject)</label><textarea placeholder="Explain your decision..."></textarea></div>
+          <button class="btn btn-primary">Submit Decision</button>
+        </div>
+      </div>
+
+      <!-- 9. GAP REGISTER & ROADMAP -->
+      <div class="screen" id="gap-roadmap">
+        <div class="screen-header">
+          <h1>Gap Register &amp; Improvement Roadmap</h1>
+          <p>Gaps found during assessment turned into action items with an owner, due date, priority, and target maturity level. (US-16, US-17, US-18)</p>
+        </div>
+
+        <div class="card">
+          <h3>Gap Register <span class="count">5 open</span></h3>
+          <table>
+            <tr><th>Area</th><th>Gap</th><th>Type</th><th>Priority</th></tr>
+            <tr><td>Supplier Sustainability</td><td>No documented supplier code of conduct</td><td>Missing evidence</td><td><span class="badge badge-red">High</span></td></tr>
+            <tr><td>Waste &amp; Materials</td><td>Packaging waste not consistently measured</td><td>Weak process</td><td><span class="badge badge-red">High</span></td></tr>
+            <tr><td>Energy &amp; Emissions</td><td>March 2026 usage data missing</td><td>Missing evidence</td><td><span class="badge badge-amber">Medium</span></td></tr>
+            <tr><td>Product Life Cycle</td><td>No owner assigned to product data collection</td><td>Unclear ownership</td><td><span class="badge badge-amber">Medium</span></td></tr>
+            <tr><td>People &amp; Workplace</td><td>Wellbeing policy evidence outdated (2023)</td><td>Weak evidence</td><td><span class="badge badge-gray">Low</span></td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>Improvement Action Plan</h3>
+          <table>
+            <tr><th>Action</th><th>Owner</th><th>Due date</th><th>Priority</th><th>Target level</th><th>Status</th></tr>
+            <tr><td>Draft &amp; circulate supplier code of conduct</td><td>Daniel Ong</td><td>15 Sep 2026</td><td><span class="badge badge-red">High</span></td><td>Silver</td><td><span class="badge badge-amber">In progress</span></td></tr>
+            <tr><td>Set up monthly packaging waste log</td><td>Priya Nair</td><td>01 Sep 2026</td><td><span class="badge badge-red">High</span></td><td>Bronze</td><td><span class="badge badge-gray">Not started</span></td></tr>
+            <tr><td>Recover missing March electricity data</td><td>Wei Ling</td><td>20 Jul 2026</td><td><span class="badge badge-amber">Medium</span></td><td>Silver</td><td><span class="badge badge-green">Done</span></td></tr>
+          </table>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Roadmap Agent</div>
+          <p>Suggested next action: assign a Product Owner to close the ownership gap in Product Life Cycle — this is currently blocking 2 downstream questions.</p>
+        </div>
+      </div>
+
+      <!-- 10. MANAGEMENT SUMMARY -->
+      <div class="screen" id="mgmt-summary">
+        <div class="screen-header">
+          <h1>Management Summary &amp; Evidence Pack</h1>
+          <p>Final management view — maturity level, key gaps, actions, and evidence pack, so leadership or reviewers understand the result quickly. (US-22, US-23)</p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><div class="num" style="color:var(--primary);">Silver</div><div class="lbl">Overall maturity (draft)</div></div>
+          <div class="stat"><div class="num">5</div><div class="lbl">Open gaps</div></div>
+          <div class="stat"><div class="num">12 / 18</div><div class="lbl">Actions completed</div></div>
+          <div class="stat"><div class="num">27</div><div class="lbl">Approved evidence files</div></div>
+        </div>
+
+        <div class="card">
+          <h3>Progress Over Time</h3>
+          <div style="display:flex;align-items:flex-end;gap:16px;height:120px;padding:6px 0;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="width:34px;height:40px;background:#D8DEE6;border-radius:4px 4px 0 0;"></div><span style="font-size:11px;color:var(--muted);">Q4'25</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="width:34px;height:58px;background:#A9DEE3;border-radius:4px 4px 0 0;"></div><span style="font-size:11px;color:var(--muted);">Q1'26</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="width:34px;height:80px;background:var(--primary);border-radius:4px 4px 0 0;"></div><span style="font-size:11px;color:var(--muted);">Q2'26</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="width:34px;height:96px;background:var(--primary-dark);border-radius:4px 4px 0 0;"></div><span style="font-size:11px;color:var(--muted);">Q3'26 (proj.)</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Evidence Pack Export <span class="count">preview</span></h3>
+          <table>
+            <tr><th>Claim</th><th>Maturity area</th><th>Supporting file</th><th>Reviewer decision</th></tr>
+            <tr><td>Monthly electricity tracked across sites</td><td>Energy &amp; Emissions</td><td>Q2_Electricity_Bill_Tuas.pdf</td><td><span class="badge badge-green">Approved</span></td></tr>
+            <tr><td>Supplier ESG data collected</td><td>Supplier Sustainability</td><td>Supplier_ESG_Response_Acme.xlsx</td><td><span class="badge badge-amber">Pending</span></td></tr>
+            <tr><td>Wellbeing policy in effect</td><td>People &amp; Workplace</td><td>HR_Policy_Wellbeing.docx</td><td><span class="badge badge-green">Approved</span></td></tr>
+          </table>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Report Agent</div>
+          <p>Draft summary ready: "Meridian Manufacturing is tracking toward Silver-level maturity, with Energy &amp; Emissions and People &amp; Workplace confirmed. Supplier Sustainability remains the primary blocker, pending code-of-conduct evidence."</p>
+          <div class="btn-row"><button class="btn btn-ai btn-sm">Generate full report</button><button class="btn btn-sm">Export evidence pack (PDF)</button></div>
+          <div class="hitl">🛈 Reviewer approves the report before it is shared externally.</div>
+        </div>
+      </div>
+
+      <!-- 11. SUPPLIER QUESTIONNAIRE -->
+      <div class="screen" id="supplier-q">
+        <div class="screen-header">
+          <h1>Supplier Questionnaire</h1>
+          <p>Collect sustainability information from suppliers — track responses, questionnaire status, incomplete answers, and AI-suggested follow-ups. (US-19, US-20)</p>
+        </div>
+
+        <div class="card">
+          <h3>Supplier Register <span class="count">6 suppliers</span></h3>
+          <table>
+            <tr><th>Supplier</th><th>Category</th><th>Questionnaire status</th><th>Evidence received</th><th>Action</th></tr>
+            <tr><td>Acme Components Pte Ltd</td><td>Tier-1 · Electronics</td><td><span class="badge badge-green">Complete</span></td><td>ESG report, ISO cert</td><td><button class="btn btn-sm">View</button></td></tr>
+            <tr><td>Global Packaging Co.</td><td>Tier-1 · Packaging</td><td><span class="badge badge-amber">Partial (3/8)</span></td><td>Cover letter only</td><td><button class="btn btn-sm">Remind</button></td></tr>
+            <tr><td>Northline Logistics</td><td>Tier-1 · Logistics</td><td><span class="badge badge-red">Not started</span></td><td>—</td><td><button class="btn btn-sm">Send</button></td></tr>
+            <tr><td>Silverline Metals</td><td>Tier-2 · Raw materials</td><td><span class="badge badge-green">Complete</span></td><td>Emissions data sheet</td><td><button class="btn btn-sm">View</button></td></tr>
+          </table>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Supplier Sustainability Agent</div>
+          <p>Global Packaging Co.'s response is missing waste and emissions data (questions 4–8). Suggested follow-up: send a targeted reminder covering only the unanswered questions.</p>
+          <div class="btn-row"><button class="btn btn-ai btn-sm">Draft follow-up questionnaire</button></div>
+        </div>
+      </div>
+
+      <!-- 12. PRODUCT LIFECYCLE -->
+      <div class="screen" id="product-lifecycle">
+        <div class="screen-header">
+          <h1>Product Lifecycle</h1>
+          <p>Capture sustainability information across a product's lifecycle — components, usage, decommissioning, reuse, and missing lifecycle data. (US-21)</p>
+        </div>
+
+        <div class="card">
+          <h3>Product Record — Consumer Speaker Model X2</h3>
+          <div class="grid3">
+            <div class="field"><label>Materials</label><input type="text" value="ABS plastic, aluminium, lithium battery"></div>
+            <div class="field"><label>Packaging</label><input type="text" value="Recycled cardboard, no plastic wrap"></div>
+            <div class="field"><label>Usage phase</label><input type="text" value="Est. 5 year product life, 8W avg draw"></div>
+            <div class="field"><label>Disposal / end-of-life</label><input type="text" value="No take-back program currently"></div>
+            <div class="field"><label>Reuse / recyclability</label><input type="text" value="Battery removable; casing not separable"></div>
+            <div class="field"><label>Related evidence</label><input type="text" value="Bill of materials, packaging spec sheet"></div>
+          </div>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Product Life Cycle Agent</div>
+          <p>Missing: disposal/take-back programme and recyclability testing data. These are typically required for Silver-level Product Life Cycle maturity.</p>
+        </div>
+      </div>
+
+      <!-- 13. TEMPLATE VERSION HISTORY -->
+      <div class="screen" id="template-version">
+        <div class="screen-header">
+          <h1>Template Version History</h1>
+          <p>Manage different versions of the TR149 assessment template. Keeps changes traceable, supports comparison, and protects old assessment records. (US-24)</p>
+        </div>
+
+        <div class="card">
+          <table>
+            <tr><th>Version</th><th>Released</th><th>Change summary</th><th>Used by</th><th>Status</th></tr>
+            <tr><td><b>v1.2</b></td><td>02 Jun 2026</td><td>Added Product Life Cycle domain, revised Silver criteria</td><td>4 active projects</td><td><span class="badge badge-green">Current</span></td></tr>
+            <tr><td>v1.1</td><td>14 Mar 2026</td><td>Clarified supplier boundary definitions</td><td>2 projects (locked)</td><td><span class="badge badge-gray">Archived</span></td></tr>
+            <tr><td>v1.0</td><td>28 Jan 2026</td><td>Initial TR149 template release</td><td>1 project (locked)</td><td><span class="badge badge-gray">Archived</span></td></tr>
+          </table>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Reviewer Assistant Agent</div>
+          <p>v1.2 vs v1.1: 1 domain added, 3 questions reworded, Silver criteria for Energy &amp; Emissions tightened. Projects on v1.1 are unaffected but flagged for optional re-assessment.</p>
+          <div class="btn-row"><button class="btn btn-ai btn-sm">Compare versions</button></div>
+        </div>
+      </div>
+
+      <!-- 14. AUDIT TRAIL -->
+      <div class="screen" id="audit-trail">
+        <div class="screen-header">
+          <h1>Audit Trail</h1>
+          <p>Key actions and changes in the project — who changed what, when, and why — supporting accountability and review. (US-24)</p>
+        </div>
+
+        <div class="card">
+          <div class="timeline">
+            <div class="tl-item"><div class="tl-body"><b>Priya Nair</b> uploaded <i>Waste_Disposal_Contract_2026.pdf</i></div><div class="tl-meta">10 Jul 2026, 09:12 · Waste & Materials</div></div>
+            <div class="tl-item"><div class="tl-body"><b>Reviewer Assistant Agent</b> flagged low-confidence evidence mapping (54%)</div><div class="tl-meta">10 Jul 2026, 09:14 · AI action</div></div>
+            <div class="tl-item"><div class="tl-body"><b>Wei Ling</b> confirmed Energy & Emissions maturity level as Silver</div><div class="tl-meta">09 Jul 2026, 16:40 · Reason: "Evidence sufficient, AI rationale matches internal record"</div></div>
+            <div class="tl-item"><div class="tl-body"><b>System · AI</b> suggested Bronze for Supplier Sustainability (71% confidence)</div><div class="tl-meta">09 Jul 2026, 14:02 · Maturity Assessment Agent</div></div>
+            <div class="tl-item"><div class="tl-body"><b>Daniel Ong</b> submitted supplier questionnaire response for Acme Components</div><div class="tl-meta">08 Jul 2026, 11:20</div></div>
+            <div class="tl-item"><div class="tl-body"><b>Platform Admin</b> updated template to v1.2</div><div class="tl-meta">02 Jun 2026, 10:00 · Reason: "Added Product Life Cycle domain"</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const titles = {
+    'onboarding':'Company Onboarding',
+    'project-setup':'Project Setup','scope-setup':'Scope Setup','owner-assignment':'Owner Assignment',
+    'guided-assessment':'Guided Assessment','evidence-upload':'Evidence Upload & AI Mapping','env-data':'Environmental Data Extraction',
+    'ai-maturity':'AI Suggested Maturity','reviewer-approval':'Reviewer Approval',
+    'gap-roadmap':'Gap Register & Improvement Roadmap','mgmt-summary':'Management Summary & Evidence Pack',
+    'supplier-q':'Supplier Questionnaire','product-lifecycle':'Product Lifecycle',
+    'template-version':'Template Version History','audit-trail':'Audit Trail'
+  };
+  function showScreen(id, el){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    if(el) el.classList.add('active');
+    document.getElementById('crumb-current').textContent = titles[id] || id;
+    document.querySelector('.content').scrollTop = 0;
+  }
+
+  const ACE_API = '/api/chat';
+  let aceHistory = [];
+  let aceBusy = false;
+
+  function aceAppendBubble(role, text){
+    const wrap = document.getElementById('ace-chat-wrap');
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg ' + (role === 'user' ? 'user' : 'agent');
+    const avatar = document.createElement('div');
+    avatar.className = 'chat-avatar ' + (role === 'user' ? 'user-avatar' : 'agent-avatar');
+    avatar.textContent = role === 'user' ? 'GW' : '✦';
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble ' + (role === 'user' ? 'user-bubble' : 'agent-bubble');
+    bubble.textContent = text;
+    msg.appendChild(avatar); msg.appendChild(bubble);
+    wrap.appendChild(msg);
+    const scroller = document.querySelector('#onboarding .content') || document.querySelector('.content');
+    wrap.closest('.card').scrollIntoView({block:'nearest'});
+    return msg;
+  }
+
+  async function aceSend(){
+    if(aceBusy) return;
+    const input = document.getElementById('ace-chat-input');
+    const text = input.value.trim();
+    if(!text) return;
+    aceAppendBubble('user', text);
+    aceHistory.push({role:'user', content: text});
+    input.value = '';
+    aceBusy = true;
+    document.getElementById('ace-send-btn').disabled = true;
+    const typing = aceAppendBubble('agent', 'Thinking…');
+    document.getElementById('ace-status').textContent = '';
+    try {
+      const res = await fetch(ACE_API, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ messages: aceHistory })
+      });
+      const data = await res.json();
+      typing.remove();
+      if(!res.ok){
+        aceAppendBubble('agent', 'Error: ' + (data.error || 'something went wrong talking to the ACE backend.'));
+        document.getElementById('ace-status').textContent = 'Check that server.js is running with a valid ANTHROPIC_API_KEY.';
+        return;
+      }
+      let toolUsed = false;
+      for(const block of data.content){
+        if(block.type === 'text' && block.text.trim()){
+          aceAppendBubble('agent', block.text);
+        } else if(block.type === 'tool_use' && block.name === 'generate_checklist'){
+          aceRenderChecklist(block.input);
+          toolUsed = true;
+        }
+      }
+      if(toolUsed){
+        input.disabled = true;
+        document.getElementById('ace-send-btn').disabled = true;
+        document.getElementById('ace-status').textContent = 'Checklist generated. Refresh the page to start a new onboarding conversation.';
+        return;
+      }
+      aceHistory.push({role:'assistant', content: data.content});
+    } catch(err){
+      typing.remove();
+      aceAppendBubble('agent', "Couldn't reach the ACE backend. Make sure server.js is running and you opened this page from http://localhost:8787.");
+      document.getElementById('ace-status').textContent = String(err);
+    } finally {
+      aceBusy = false;
+      document.getElementById('ace-send-btn').disabled = false;
+    }
+  }
+
+  function aceRenderChecklist(data){
+    const items = data.items || [];
+    const byDomain = {};
+    const order = [];
+    items.forEach(it => {
+      if(!byDomain[it.domain]){ byDomain[it.domain] = []; order.push(it.domain); }
+      byDomain[it.domain].push(it.text);
+    });
+    const body = document.getElementById('ace-checklist-body');
+    body.innerHTML = '';
+    order.forEach(domain => {
+      const h = document.createElement('div');
+      h.className = 'checklist-domain';
+      h.textContent = domain;
+      body.appendChild(h);
+      byDomain[domain].forEach(text => {
+        const row = document.createElement('div');
+        row.className = 'checklist-item';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        const div = document.createElement('div');
+        div.textContent = text;
+        row.appendChild(cb); row.appendChild(div);
+        body.appendChild(row);
+      });
+    });
+    document.getElementById('ace-checklist-count').textContent = (data.company_name ? data.company_name + ' · ' : '') + items.length + ' items';
+    document.getElementById('ace-checklist-card').style.display = 'block';
+    document.getElementById('ace-checklist-status-text').textContent = data.summary || ('Generated ' + items.length + ' checklist items based on your company profile.');
+  }
+</script>
+</body>
+</html>
