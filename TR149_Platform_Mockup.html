@@ -189,6 +189,7 @@
 
     <div class="nav-group">
       <div class="nav-group-title">Setup</div>
+      <div class="nav-item" onclick="showScreen('about', this)"><span class="dot"></span>About</div>
       <div class="nav-item" onclick="showScreen('project-setup', this)"><span class="dot"></span>Project Setup</div>
       <div class="nav-item" onclick="showScreen('scope-setup', this)"><span class="dot"></span>Scope Setup</div>
       <div class="nav-item" onclick="showScreen('owner-assignment', this)"><span class="dot"></span>Owner Assignment</div>
@@ -279,6 +280,34 @@
         </div>
       </div>
 
+      <!-- 0b. ABOUT / COMPANY SUMMARY -->
+      <div class="screen" id="about">
+        <div class="screen-header">
+          <h1>About</h1>
+          <p>The company profile captured during onboarding. ACE uses this summary to tailor the TR149 assessment scope, questions, and suggested owners.</p>
+        </div>
+
+        <div class="card">
+          <h3>Company Summary <span class="count">from onboarding</span></h3>
+          <div class="grid2">
+            <div class="field"><label>Company name</label><input type="text" value="BreadTalk Group Limited" readonly></div>
+            <div class="field"><label>Industry</label><input type="text" value="Food &amp; Beverage (Bakery, Cafes &amp; Restaurants)" readonly></div>
+            <div class="field"><label>Headquarters</label><input type="text" value="Singapore" readonly></div>
+            <div class="field"><label>Regional footprint</label><input type="text" value="Singapore, China, Hong Kong, Thailand" readonly></div>
+            <div class="field"><label>Brands</label><input type="text" value="BreadTalk, Toast Box, Food Republic, Din Tai Fung (franchise)" readonly></div>
+            <div class="field"><label>Website</label><input type="text" value="https://www.breadtalk.com/" readonly></div>
+          </div>
+        </div>
+
+        <div class="ai-box">
+          <div class="ai-head"><span class="ai-spark">✦</span>Onboarding Agent summary</div>
+          <p>BreadTalk Group is a Singapore-based food and beverage company running bakery, cafe, food-court and restaurant brands across Asia, supported by central kitchens and daily cold-chain distribution to outlets. Its most material TR149 areas are Waste &amp; Materials (food and single-use packaging waste), Supplier Sustainability (flour, dairy, cooking oil and packaging suppliers), Energy &amp; Emissions (ovens, refrigeration and outlet electricity), and People &amp; Workplace (a large frontline workforce).</p>
+          <div class="hitl">🛈 <b>Human-in-the-loop:</b> Sustainability Lead confirms this summary before it drives project setup.</div>
+        </div>
+
+        <div class="btn-row"><button class="btn btn-primary">Continue to Project Setup →</button><button class="btn">Edit summary</button></div>
+      </div>
+
       <!-- 1. PROJECT SETUP -->
       <div class="screen" id="project-setup">
         <div class="screen-header">
@@ -289,12 +318,12 @@
         <div class="card">
           <h3>Organisation Profile</h3>
           <div class="grid2">
-            <div class="field"><label>Company name</label><input type="text" value="Meridian Manufacturing Pte Ltd"></div>
-            <div class="field"><label>Industry</label><select><option>Manufacturing — Electronics</option></select></div>
-            <div class="field"><label>Primary site</label><select><option>Tuas Assembly Plant</option><option>Changi Logistics Hub</option></select></div>
-            <div class="field"><label>Departments in scope</label><input type="text" value="Operations, Procurement, HR, Facilities"></div>
+            <div class="field"><label>Company name</label><input type="text" value="BreadTalk Group Limited"></div>
+            <div class="field"><label>Industry</label><select><option>Food &amp; Beverage (Bakery &amp; Restaurants)</option></select></div>
+            <div class="field"><label>Primary site</label><select><option>Central Kitchen (Tuas)</option><option>Changi Distribution Centre</option></select></div>
+            <div class="field"><label>Departments in scope</label><input type="text" value="Outlet Operations, Procurement, HR, Facilities"></div>
             <div class="field"><label>Assessment period</label><input type="date" value="2026-07-10"></div>
-            <div class="field"><label>Business activities</label><input type="text" value="Electronics assembly, packaging, distribution"></div>
+            <div class="field"><label>Business activities</label><input type="text" value="Bakery production, cafe operations, food retail, franchising"></div>
           </div>
         </div>
 
@@ -309,7 +338,7 @@
 
         <div class="ai-box">
           <div class="ai-head"><span class="ai-spark">✦</span>TR149 Guide Agent</div>
-          <p>Based on this company profile (electronics manufacturing, 2 sites), I suggest including <b>Supplier Sustainability</b> and <b>Product Life Cycle</b> areas, and flag <b>Waste &amp; Materials</b> as high-relevance for this industry.</p>
+          <p>Based on this company profile (food &amp; beverage, bakery and cafe outlets across the region), I suggest prioritising <b>Waste &amp; Materials</b> and <b>Supplier Sustainability</b> areas, and flag <b>Energy &amp; Emissions</b> as high-relevance for central kitchens and outlet refrigeration.</p>
           <div class="btn-row"><button class="btn btn-ai btn-sm">Apply suggestion</button><button class="btn btn-sm">Dismiss</button></div>
           <div class="hitl">🛈 <b>Human-in-the-loop:</b> User confirms interpretation before setup continues.</div>
         </div>
@@ -330,9 +359,9 @@
             <div>
               <div class="field checks">
                 <label>Included sites</label>
-                <label><input type="checkbox" checked> Tuas Assembly Plant</label>
-                <label><input type="checkbox" checked> Changi Logistics Hub</label>
-                <label><input type="checkbox"> Penang Contract Facility (3rd party)</label>
+                <label><input type="checkbox" checked> Central Kitchen (Tuas)</label>
+                <label><input type="checkbox" checked> Changi Distribution Centre</label>
+                <label><input type="checkbox"> China Franchise Outlets (3rd party)</label>
               </div>
             </div>
             <div>
@@ -345,22 +374,22 @@
               </div>
             </div>
           </div>
-          <div class="field"><label>Product / service boundary</label><input type="text" value="Consumer electronics assembly line A & B"></div>
-          <div class="field"><label>Supplier boundary</label><input type="text" value="Tier-1 suppliers with >5% spend share"></div>
+          <div class="field"><label>Product / service boundary</label><input type="text" value="BreadTalk & Toast Box outlets in Singapore"></div>
+          <div class="field"><label>Supplier boundary</label><input type="text" value="Tier-1 ingredient & packaging suppliers with >5% spend share"></div>
         </div>
 
         <div class="card">
           <h3>Exclusions <span class="count">2 recorded</span></h3>
           <table>
             <tr><th>Excluded item</th><th>Reason</th><th>Status</th></tr>
-            <tr><td>Penang Contract Facility</td><td>Operated by third-party contractor, no data access</td><td><span class="badge badge-amber">Needs review</span></td></tr>
-            <tr><td>Legacy Product Line C</td><td>Discontinued Q1 2026</td><td><span class="badge badge-green">Clear</span></td></tr>
+            <tr><td>China Franchise Outlets</td><td>Operated by franchise partner, no direct data access</td><td><span class="badge badge-amber">Needs review</span></td></tr>
+            <tr><td>Discontinued seasonal range</td><td>Withdrawn from menu Q1 2026</td><td><span class="badge badge-green">Clear</span></td></tr>
           </table>
         </div>
 
         <div class="ai-box">
           <div class="ai-head"><span class="ai-spark">✦</span>Reviewer Assistant Agent</div>
-          <p>The exclusion "Penang Contract Facility" doesn't state whether Tier-1 supplier obligations still apply. Consider clarifying before locking scope.</p>
+          <p>The exclusion "China Franchise Outlets" doesn't state whether Tier-1 supplier obligations still apply. Consider clarifying before locking scope.</p>
           <div class="hitl">🛈 Reviewer Assistant Agent flags unclear exclusions — final wording confirmed by Sustainability Lead.</div>
         </div>
 
@@ -410,7 +439,7 @@
             <div><div class="qarea">Energy &amp; Emissions · Owner: Wei Ling</div><div class="qtext">Does your organisation track monthly electricity consumption across all included sites?</div></div>
             <span class="badge badge-green">Answered</span>
           </div>
-          <textarea>Yes, monthly electricity usage is tracked via utility bills for Tuas and Changi sites and consolidated in a spreadsheet by Facilities.</textarea>
+          <textarea>Yes, monthly electricity usage is tracked via utility bills for the Central Kitchen and Changi Distribution Centre, and consolidated in a spreadsheet by Facilities. Outlet-level usage is still being collected.</textarea>
           <div class="example">💡 Example evidence: utility bills, energy meter exports, sustainability dashboard screenshots.</div>
         </div>
 
@@ -425,7 +454,7 @@
 
         <div class="qcard">
           <div class="qtop">
-            <div><div class="qarea">Waste &amp; Materials · Owner: Priya Nair</div><div class="qtext">Is packaging waste from production measured and reported?</div></div>
+            <div><div class="qarea">Waste &amp; Materials · Owner: Priya Nair</div><div class="qtext">Is food waste and single-use packaging waste from outlets measured and reported?</div></div>
             <span class="badge badge-red">Unanswered</span>
           </div>
           <textarea placeholder="Type your answer here..."></textarea>
@@ -451,7 +480,7 @@
           <h3>Uploaded Files <span class="count">4</span></h3>
 
           <div class="filerow">
-            <div class="fileinfo"><div class="fileicon">📄</div><div><div class="filename">Q2_Electricity_Bill_Tuas.pdf</div><div class="filemeta">Uploaded by Wei Ling · 2.1MB</div></div></div>
+            <div class="fileinfo"><div class="fileicon">📄</div><div><div class="filename">Q2_Electricity_Bill_CentralKitchen.pdf</div><div class="filemeta">Uploaded by Wei Ling · 2.1MB</div></div></div>
             <div style="display:flex;align-items:center;gap:10px;">
               <span class="tag">✦ Energy &amp; Emissions <span style="color:var(--ai)">92%</span></span>
               <button class="btn btn-sm btn-primary">Accept</button><button class="btn btn-sm">Adjust</button>
@@ -459,7 +488,7 @@
           </div>
 
           <div class="filerow">
-            <div class="fileinfo"><div class="fileicon">📊</div><div><div class="filename">Supplier_ESG_Response_Acme.xlsx</div><div class="filemeta">Uploaded by Daniel Ong · 640KB</div></div></div>
+            <div class="fileinfo"><div class="fileicon">📊</div><div><div class="filename">Supplier_ESG_Response_PrimaFlour.xlsx</div><div class="filemeta">Uploaded by Daniel Ong · 640KB</div></div></div>
             <div style="display:flex;align-items:center;gap:10px;">
               <span class="tag">✦ Supplier Sustainability <span style="color:var(--ai)">87%</span></span>
               <button class="btn btn-sm btn-primary">Accept</button><button class="btn btn-sm">Adjust</button>
@@ -467,7 +496,7 @@
           </div>
 
           <div class="filerow">
-            <div class="fileinfo"><div class="fileicon">📄</div><div><div class="filename">Waste_Disposal_Contract_2026.pdf</div><div class="filemeta">Uploaded by Priya Nair · 1.4MB</div></div></div>
+            <div class="fileinfo"><div class="fileicon">📄</div><div><div class="filename">FoodWaste_Disposal_Contract_2026.pdf</div><div class="filemeta">Uploaded by Priya Nair · 1.4MB</div></div></div>
             <div style="display:flex;align-items:center;gap:10px;">
               <span class="tag" style="background:var(--warning-light);color:var(--warning);">✦ Uncertain <span>54%</span></span>
               <button class="btn btn-sm">Review</button>
@@ -484,7 +513,7 @@
 
         <div class="ai-box">
           <div class="ai-head"><span class="ai-spark">✦</span>Evidence Extraction &amp; Mapping Agent</div>
-          <p>Extracted key facts from 4 files and suggested TR149 area links. "Waste_Disposal_Contract_2026.pdf" has low confidence — recommend manual review before mapping.</p>
+          <p>Extracted key facts from 4 files and suggested TR149 area links. "FoodWaste_Disposal_Contract_2026.pdf" has low confidence — recommend manual review before mapping.</p>
           <div class="hitl">🛈 Reviewer approves evidence relevance before it can influence scoring.</div>
         </div>
       </div>
@@ -503,7 +532,7 @@
             <tr><td>Jan 2026</td><td>Electricity</td><td>48,210</td><td>kWh</td><td>Q1_Electricity_Bill.pdf</td><td><span class="badge badge-green">OK</span></td></tr>
             <tr><td>Feb 2026</td><td>Electricity</td><td>47,900</td><td>kWh</td><td>Q1_Electricity_Bill.pdf</td><td><span class="badge badge-green">OK</span></td></tr>
             <tr><td>Mar 2026</td><td>Electricity</td><td>—</td><td>—</td><td>—</td><td><span class="badge badge-red">Missing period</span></td></tr>
-            <tr><td>Apr 2026</td><td>Electricity</td><td>112,400</td><td>kWh</td><td>Q2_Electricity_Bill_Tuas.pdf</td><td><span class="badge badge-amber">Spike +134%</span></td></tr>
+            <tr><td>Apr 2026</td><td>Electricity</td><td>112,400</td><td>kWh</td><td>Q2_Electricity_Bill_CentralKitchen.pdf</td><td><span class="badge badge-amber">Spike +134%</span></td></tr>
             <tr><td>Jan 2026</td><td>Water</td><td>3,120</td><td>m³</td><td>Water_Utility_Jan.pdf</td><td><span class="badge badge-green">OK</span></td></tr>
             <tr><td>Feb 2026</td><td>Water</td><td>3.2</td><td>ML</td><td>Water_Utility_Feb.pdf</td><td><span class="badge badge-amber">Unit mismatch</span></td></tr>
           </table>
@@ -538,7 +567,7 @@
             <p><b>Suggested level: Bronze.</b> Rationale: organisation collects supplier ESG data informally but lacks a documented supplier code of conduct and consistent evidence across Tier-1 suppliers. 2 of 3 required criteria met with approved evidence.</p>
             <div class="conf-bar"><span style="width:71%;"></span></div>
             <div style="font-size:11.5px;color:var(--ai);">Confidence: 71%</div>
-            <div style="margin-top:8px;font-size:12px;">Supporting evidence: <span class="tag">Supplier_ESG_Response_Acme.xlsx</span> <span class="tag">Q06 answer</span></div>
+            <div style="margin-top:8px;font-size:12px;">Supporting evidence: <span class="tag">Supplier_ESG_Response_PrimaFlour.xlsx</span> <span class="tag">Q06 answer</span></div>
           </div>
         </div>
 
@@ -567,7 +596,7 @@
           <table>
             <tr><th>Item</th><th>Type</th><th>AI Suggestion</th><th>Submitted by</th><th></th></tr>
             <tr><td>Supplier Sustainability — maturity level</td><td>Maturity</td><td>Bronze (71%)</td><td>System · AI</td><td><button class="btn btn-sm">Open</button></td></tr>
-            <tr><td>Waste_Disposal_Contract_2026.pdf</td><td>Evidence mapping</td><td>Uncertain (54%)</td><td>Priya Nair</td><td><button class="btn btn-sm">Open</button></td></tr>
+            <tr><td>FoodWaste_Disposal_Contract_2026.pdf</td><td>Evidence mapping</td><td>Uncertain (54%)</td><td>Priya Nair</td><td><button class="btn btn-sm">Open</button></td></tr>
             <tr><td>Waste &amp; Materials — maturity level</td><td>Maturity</td><td>Essential (63%)</td><td>System · AI</td><td><button class="btn btn-sm">Open</button></td></tr>
           </table>
         </div>
@@ -601,10 +630,10 @@
           <h3>Gap Register <span class="count">5 open</span></h3>
           <table>
             <tr><th>Area</th><th>Gap</th><th>Type</th><th>Priority</th></tr>
-            <tr><td>Supplier Sustainability</td><td>No documented supplier code of conduct</td><td>Missing evidence</td><td><span class="badge badge-red">High</span></td></tr>
-            <tr><td>Waste &amp; Materials</td><td>Packaging waste not consistently measured</td><td>Weak process</td><td><span class="badge badge-red">High</span></td></tr>
-            <tr><td>Energy &amp; Emissions</td><td>March 2026 usage data missing</td><td>Missing evidence</td><td><span class="badge badge-amber">Medium</span></td></tr>
-            <tr><td>Product Life Cycle</td><td>No owner assigned to product data collection</td><td>Unclear ownership</td><td><span class="badge badge-amber">Medium</span></td></tr>
+            <tr><td>Supplier Sustainability</td><td>No documented code of conduct for ingredient suppliers</td><td>Missing evidence</td><td><span class="badge badge-red">High</span></td></tr>
+            <tr><td>Waste &amp; Materials</td><td>Food and packaging waste not consistently measured across outlets</td><td>Weak process</td><td><span class="badge badge-red">High</span></td></tr>
+            <tr><td>Energy &amp; Emissions</td><td>March 2026 Central Kitchen electricity data missing</td><td>Missing evidence</td><td><span class="badge badge-amber">Medium</span></td></tr>
+            <tr><td>Product Life Cycle</td><td>No owner assigned to packaging &amp; menu lifecycle data</td><td>Unclear ownership</td><td><span class="badge badge-amber">Medium</span></td></tr>
             <tr><td>People &amp; Workplace</td><td>Wellbeing policy evidence outdated (2023)</td><td>Weak evidence</td><td><span class="badge badge-gray">Low</span></td></tr>
           </table>
         </div>
@@ -614,8 +643,8 @@
           <table>
             <tr><th>Action</th><th>Owner</th><th>Due date</th><th>Priority</th><th>Target level</th><th>Status</th></tr>
             <tr><td>Draft &amp; circulate supplier code of conduct</td><td>Daniel Ong</td><td>15 Sep 2026</td><td><span class="badge badge-red">High</span></td><td>Silver</td><td><span class="badge badge-amber">In progress</span></td></tr>
-            <tr><td>Set up monthly packaging waste log</td><td>Priya Nair</td><td>01 Sep 2026</td><td><span class="badge badge-red">High</span></td><td>Bronze</td><td><span class="badge badge-gray">Not started</span></td></tr>
-            <tr><td>Recover missing March electricity data</td><td>Wei Ling</td><td>20 Jul 2026</td><td><span class="badge badge-amber">Medium</span></td><td>Silver</td><td><span class="badge badge-green">Done</span></td></tr>
+            <tr><td>Set up monthly food &amp; packaging waste log per outlet</td><td>Priya Nair</td><td>01 Sep 2026</td><td><span class="badge badge-red">High</span></td><td>Bronze</td><td><span class="badge badge-gray">Not started</span></td></tr>
+            <tr><td>Recover missing March Central Kitchen electricity data</td><td>Wei Ling</td><td>20 Jul 2026</td><td><span class="badge badge-amber">Medium</span></td><td>Silver</td><td><span class="badge badge-green">Done</span></td></tr>
           </table>
         </div>
 
@@ -653,15 +682,15 @@
           <h3>Evidence Pack Export <span class="count">preview</span></h3>
           <table>
             <tr><th>Claim</th><th>Maturity area</th><th>Supporting file</th><th>Reviewer decision</th></tr>
-            <tr><td>Monthly electricity tracked across sites</td><td>Energy &amp; Emissions</td><td>Q2_Electricity_Bill_Tuas.pdf</td><td><span class="badge badge-green">Approved</span></td></tr>
-            <tr><td>Supplier ESG data collected</td><td>Supplier Sustainability</td><td>Supplier_ESG_Response_Acme.xlsx</td><td><span class="badge badge-amber">Pending</span></td></tr>
+            <tr><td>Monthly electricity tracked across sites</td><td>Energy &amp; Emissions</td><td>Q2_Electricity_Bill_CentralKitchen.pdf</td><td><span class="badge badge-green">Approved</span></td></tr>
+            <tr><td>Supplier ESG data collected</td><td>Supplier Sustainability</td><td>Supplier_ESG_Response_PrimaFlour.xlsx</td><td><span class="badge badge-amber">Pending</span></td></tr>
             <tr><td>Wellbeing policy in effect</td><td>People &amp; Workplace</td><td>HR_Policy_Wellbeing.docx</td><td><span class="badge badge-green">Approved</span></td></tr>
           </table>
         </div>
 
         <div class="ai-box">
           <div class="ai-head"><span class="ai-spark">✦</span>Report Agent</div>
-          <p>Draft summary ready: "Meridian Manufacturing is tracking toward Silver-level maturity, with Energy &amp; Emissions and People &amp; Workplace confirmed. Supplier Sustainability remains the primary blocker, pending code-of-conduct evidence."</p>
+          <p>Draft summary ready: "BreadTalk Group is tracking toward Silver-level maturity, with Energy &amp; Emissions and People &amp; Workplace confirmed. Supplier Sustainability and outlet-level waste tracking remain the primary blockers, pending code-of-conduct and food-waste evidence."</p>
           <div class="btn-row"><button class="btn btn-ai btn-sm">Generate full report</button><button class="btn btn-sm">Export evidence pack (PDF)</button></div>
           <div class="hitl">🛈 Reviewer approves the report before it is shared externally.</div>
         </div>
@@ -678,10 +707,10 @@
           <h3>Supplier Register <span class="count">6 suppliers</span></h3>
           <table>
             <tr><th>Supplier</th><th>Category</th><th>Questionnaire status</th><th>Evidence received</th><th>Action</th></tr>
-            <tr><td>Acme Components Pte Ltd</td><td>Tier-1 · Electronics</td><td><span class="badge badge-green">Complete</span></td><td>ESG report, ISO cert</td><td><button class="btn btn-sm">View</button></td></tr>
+            <tr><td>Prima Flour Pte Ltd</td><td>Tier-1 · Ingredients</td><td><span class="badge badge-green">Complete</span></td><td>ESG report, ISO cert</td><td><button class="btn btn-sm">View</button></td></tr>
             <tr><td>Global Packaging Co.</td><td>Tier-1 · Packaging</td><td><span class="badge badge-amber">Partial (3/8)</span></td><td>Cover letter only</td><td><button class="btn btn-sm">Remind</button></td></tr>
-            <tr><td>Northline Logistics</td><td>Tier-1 · Logistics</td><td><span class="badge badge-red">Not started</span></td><td>—</td><td><button class="btn btn-sm">Send</button></td></tr>
-            <tr><td>Silverline Metals</td><td>Tier-2 · Raw materials</td><td><span class="badge badge-green">Complete</span></td><td>Emissions data sheet</td><td><button class="btn btn-sm">View</button></td></tr>
+            <tr><td>ColdChain Logistics</td><td>Tier-1 · Cold-chain delivery</td><td><span class="badge badge-red">Not started</span></td><td>—</td><td><button class="btn btn-sm">Send</button></td></tr>
+            <tr><td>Golden Dairy Pte Ltd</td><td>Tier-2 · Dairy</td><td><span class="badge badge-green">Complete</span></td><td>Emissions data sheet</td><td><button class="btn btn-sm">View</button></td></tr>
           </table>
         </div>
 
@@ -700,20 +729,20 @@
         </div>
 
         <div class="card">
-          <h3>Product Record — Consumer Speaker Model X2</h3>
+          <h3>Product Record — Signature Pork Floss Bun</h3>
           <div class="grid3">
-            <div class="field"><label>Materials</label><input type="text" value="ABS plastic, aluminium, lithium battery"></div>
-            <div class="field"><label>Packaging</label><input type="text" value="Recycled cardboard, no plastic wrap"></div>
-            <div class="field"><label>Usage phase</label><input type="text" value="Est. 5 year product life, 8W avg draw"></div>
-            <div class="field"><label>Disposal / end-of-life</label><input type="text" value="No take-back program currently"></div>
-            <div class="field"><label>Reuse / recyclability</label><input type="text" value="Battery removable; casing not separable"></div>
-            <div class="field"><label>Related evidence</label><input type="text" value="Bill of materials, packaging spec sheet"></div>
+            <div class="field"><label>Ingredients</label><input type="text" value="Wheat flour, pork floss, butter, egg"></div>
+            <div class="field"><label>Packaging</label><input type="text" value="Paper bag, recyclable window box"></div>
+            <div class="field"><label>Usage phase</label><input type="text" value="Sold fresh daily, consumed within 24 hours"></div>
+            <div class="field"><label>Disposal / end-of-life</label><input type="text" value="Unsold stock donated to food bank or discarded"></div>
+            <div class="field"><label>Reuse / recyclability</label><input type="text" value="Packaging partly recyclable; window film not separable"></div>
+            <div class="field"><label>Related evidence</label><input type="text" value="Recipe spec sheet, packaging spec sheet"></div>
           </div>
         </div>
 
         <div class="ai-box">
           <div class="ai-head"><span class="ai-spark">✦</span>Product Life Cycle Agent</div>
-          <p>Missing: disposal/take-back programme and recyclability testing data. These are typically required for Silver-level Product Life Cycle maturity.</p>
+          <p>Missing: outlet-level food waste data and recyclable-packaging certification. These are typically required for Silver-level Product Life Cycle maturity.</p>
         </div>
       </div>
 
@@ -749,11 +778,11 @@
 
         <div class="card">
           <div class="timeline">
-            <div class="tl-item"><div class="tl-body"><b>Priya Nair</b> uploaded <i>Waste_Disposal_Contract_2026.pdf</i></div><div class="tl-meta">10 Jul 2026, 09:12 · Waste & Materials</div></div>
+            <div class="tl-item"><div class="tl-body"><b>Priya Nair</b> uploaded <i>FoodWaste_Disposal_Contract_2026.pdf</i></div><div class="tl-meta">10 Jul 2026, 09:12 · Waste & Materials</div></div>
             <div class="tl-item"><div class="tl-body"><b>Reviewer Assistant Agent</b> flagged low-confidence evidence mapping (54%)</div><div class="tl-meta">10 Jul 2026, 09:14 · AI action</div></div>
             <div class="tl-item"><div class="tl-body"><b>Wei Ling</b> confirmed Energy & Emissions maturity level as Silver</div><div class="tl-meta">09 Jul 2026, 16:40 · Reason: "Evidence sufficient, AI rationale matches internal record"</div></div>
             <div class="tl-item"><div class="tl-body"><b>System · AI</b> suggested Bronze for Supplier Sustainability (71% confidence)</div><div class="tl-meta">09 Jul 2026, 14:02 · Maturity Assessment Agent</div></div>
-            <div class="tl-item"><div class="tl-body"><b>Daniel Ong</b> submitted supplier questionnaire response for Acme Components</div><div class="tl-meta">08 Jul 2026, 11:20</div></div>
+            <div class="tl-item"><div class="tl-body"><b>Daniel Ong</b> submitted supplier questionnaire response for Prima Flour</div><div class="tl-meta">08 Jul 2026, 11:20</div></div>
             <div class="tl-item"><div class="tl-body"><b>Platform Admin</b> updated template to v1.2</div><div class="tl-meta">02 Jun 2026, 10:00 · Reason: "Added Product Life Cycle domain"</div></div>
           </div>
         </div>
@@ -766,7 +795,7 @@
 <script>
   const titles = {
     'onboarding':'Company Onboarding',
-    'project-setup':'Project Setup','scope-setup':'Scope Setup','owner-assignment':'Owner Assignment',
+    'about':'About','project-setup':'Project Setup','scope-setup':'Scope Setup','owner-assignment':'Owner Assignment',
     'guided-assessment':'Guided Assessment','evidence-upload':'Evidence Upload & AI Mapping','env-data':'Environmental Data Extraction',
     'ai-maturity':'AI Suggested Maturity','reviewer-approval':'Reviewer Approval',
     'gap-roadmap':'Gap Register & Improvement Roadmap','mgmt-summary':'Management Summary & Evidence Pack',

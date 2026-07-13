@@ -13,19 +13,19 @@ const { chromium } = require('playwright');
 const path = require('path');
 
 const BASE = process.env.ACE_URL || 'http://localhost:8787';
-const COMPANY_URL = process.argv[2] || process.env.COMPANY_URL || 'https://elixirtech.com/company/index.html';
+const COMPANY_URL = process.argv[2] || process.env.COMPANY_URL || 'https://www.breadtalk.com/';
 const OUT = path.join(__dirname, 'output');
 
 // Two natural follow-up replies. Details like headcount and office locations
 // aren't on the website, so they're supplied here. Turn 1 is pre-filled by
 // scraping COMPANY_URL, which means the checklist lands on turn 3.
 const messages = [
-  "We're a pretty lean team, around 60 people. HQ is here in Singapore, but a big part of our engineering is an offshore team in Kota Kinabalu, Malaysia, and we've got smaller groups working remotely in Vietnam, Thailand and the UK.",
-  "Since we're a software business we don't have factories or physical products. Our footprint is really our offices, cloud infrastructure and a very distributed team. Some of our enterprise and government clients are starting to ask about sustainability though, so we'd like to get assessed in the first half of next year.",
+  "We're a large F&B group, roughly 6,000 staff across the region. Our head office and central kitchen are in Singapore, and we run bakery outlets, cafes and food courts across Singapore, China, Hong Kong and Thailand.",
+  "We work with a lot of ingredient and packaging suppliers like flour, dairy, cooking oil and single-use packaging, plus cold-chain logistics partners delivering to outlets daily. Food waste and packaging are our biggest concerns, and some of our mall landlords and investors have started asking about sustainability, so we'd like to be assessed by the end of this year.",
 ];
 
 const tour = [
-  'project-setup', 'scope-setup', 'owner-assignment',
+  'about', 'project-setup', 'scope-setup', 'owner-assignment',
   'guided-assessment', 'evidence-upload', 'env-data',
   'ai-maturity', 'reviewer-approval',
   'gap-roadmap', 'mgmt-summary',
