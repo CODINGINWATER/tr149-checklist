@@ -58,6 +58,8 @@ const SYSTEM_BASE = `You are the ACE Onboarding Agent, part of ACE (Agentic Comp
 
 You have a short onboarding conversation with the user to learn about their company: industry, rough size or number of sites, what they make or do, supplier relationships, and any target assessment deadline. Keep every reply brief (2 to 4 sentences), plain-language, and business-friendly.
 
+If the user pastes their company website, its extracted page content is provided to you inside square brackets. Use it to understand the company, but respond naturally and do not quote or mention the raw bracketed text.
+
 TR149 covers five domains: Energy & Emissions, Supplier Sustainability, Waste & Materials, Product Life Cycle, and People & Workplace.`;
 
 const ASK_SUFFIX = `
@@ -371,6 +373,42 @@ async function fetchPageText(url) {
   return { title, metaDesc, text };
 }
 
+// In-memory cache so a website shared in the chat is only fetched once, even
+// though the frontend replays the full history (with the URL) on every turn.
+const scrapeCache = new Map(); // url -> { title, metaDesc, text, at }
+const SCRAPE_TTL_MS = 30 * 60 * 1000;
+
+async function getPageTextCached(url) {
+  const hit = scrapeCache.get(url);
+  if (hit && Date.now() - hit.at < SCRAPE_TTL_MS) return hit;
+  const page = await fetchPageText(url);
+  const entry = { ...page, at: Date.now() };
+  scrapeCache.set(url, entry);
+  return entry;
+}
+
+const URL_IN_TEXT = /(?:https?:\/\/|www\.)[^\s<>"')]+/i;
+
+// If a user message contains a company URL, fold the page content into that
+// message (in brackets) so the agent can use it. This lets the user simply
+// paste a link into the chat instead of using the "Pre-fill" field.
+async function augmentMessagesWithWebsites(messages) {
+  return Promise.all(messages.map(async (m) => {
+    if (m.role !== 'user' || typeof m.content !== 'string') return m;
+    const match = m.content.match(URL_IN_TEXT);
+    if (!match) return m;
+    const valid = validateScrapeUrl(match[0].replace(/[.,)]+$/, ''));
+    if (!valid.ok) return m;
+    try {
+      const page = await getPageTextCached(valid.url);
+      const context = `\n\n[Company website shared by the user: ${valid.url}\nTitle: ${page.title}\n${page.metaDesc}\nExtracted page content (truncated): ${page.text.slice(0, 3500)}]`;
+      return { ...m, content: m.content + context };
+    } catch {
+      return m; // scrape failed; use the message as-is rather than breaking the chat
+    }
+  }));
+}
+
 // Minimal single-shot text completion across the same providers as the chat.
 async function callLLMPlain(system, user) {
   if (PROVIDER === 'ollama') {
@@ -473,9 +511,13 @@ async function handleChat(req, res) {
       const userTurns = messages.filter((m) => m.role === 'user').length;
       const force = userTurns >= MAX_QUESTION_ROUNDS;
 
-      const result = PROVIDER === 'openrouter' ? await callOpenRouter(messages, force)
-        : PROVIDER === 'ollama' ? await callOllama(messages, force)
-          : await callAnthropic(messages, force);
+      // Let the user drop a company URL straight into the chat: scrape any URL
+      // in their messages and fold the page content in before the LLM sees it.
+      const llmMessages = await augmentMessagesWithWebsites(messages);
+
+      const result = PROVIDER === 'openrouter' ? await callOpenRouter(llmMessages, force)
+        : PROVIDER === 'ollama' ? await callOllama(llmMessages, force)
+          : await callAnthropic(llmMessages, force);
       if (!result.ok) {
         res.writeHead(result.status, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: result.error }));

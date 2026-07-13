@@ -782,7 +782,11 @@
     document.querySelector('.content').scrollTop = 0;
   }
 
-  const ACE_API = '/api/chat';
+  // When the page is opened directly as a file:// (not served by server.js),
+  // relative fetches like '/api/chat' have no valid base. Fall back to an
+  // absolute localhost base in that case (the server sends permissive CORS).
+  const API_BASE = (location.protocol === 'http:' || location.protocol === 'https:') ? '' : 'http://localhost:8787';
+  const ACE_API = API_BASE + '/api/chat';
   let aceHistory = [];
   let aceBusy = false;
 
@@ -812,7 +816,7 @@
     btn.disabled = true; btn.textContent = 'Reading…';
     status.textContent = 'Reading ' + url + ' …';
     try {
-      const res = await fetch('/api/scrape', {
+      const res = await fetch(API_BASE + '/api/scrape', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ url })
