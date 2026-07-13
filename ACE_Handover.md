@@ -1,5 +1,10 @@
 # ACE (Agentic Compliance Engine) — Handover
 
+> ⚠️ This is the **original** handover (10 Jul 2026 starting state). For the
+> current state and setup instructions, see **[HANDOFF.md](HANDOFF.md)**. Since
+> this was written, the app has gained a URL scraper, a 3-round onboarding cap,
+> an About page, and full BreadTalk theming.
+
 Status as of 10 July 2026. This document is the single entry point for anyone picking up this project next — what exists, what's real vs. mocked, how to run it, and what's left to do.
 
 ## What this project is
