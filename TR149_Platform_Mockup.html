@@ -249,10 +249,14 @@
 
         <div class="card">
           <h3>ACE Onboarding Agent <span class="count" id="ace-live-badge">live · calls /api/chat</span></h3>
+          <div class="chat-input-row" style="margin-bottom:12px;">
+            <input type="text" id="ace-url-input" placeholder="Paste your company website (e.g. https://acme.com) to pre-fill the intro..." onkeydown="if(event.key==='Enter'){aceScrape();}">
+            <button class="btn btn-sm" id="ace-url-btn" onclick="aceScrape()">Pre-fill from website</button>
+          </div>
           <div class="chat-wrap" id="ace-chat-wrap">
             <div class="chat-msg agent">
               <div class="chat-avatar agent-avatar">✦</div>
-              <div class="chat-bubble agent-bubble">Hi, I'm the ACE Onboarding Agent. Tell me a bit about your company — industry, size, sites, and what you do — and I'll set up a tailored TR149 checklist for you.</div>
+              <div class="chat-bubble agent-bubble">Hi, I'm the ACE Onboarding Agent. Tell me a bit about your company: your industry, size, sites, and what you do, and I'll set up a tailored TR149 checklist for you. If you'd rather not type it all out, paste your company website above and I'll pre-fill the intro for you.</div>
             </div>
           </div>
           <div class="chat-input-row">
@@ -797,6 +801,36 @@
     const scroller = document.querySelector('#onboarding .content') || document.querySelector('.content');
     wrap.closest('.card').scrollIntoView({block:'nearest'});
     return msg;
+  }
+
+  async function aceScrape(){
+    const urlInput = document.getElementById('ace-url-input');
+    const url = urlInput.value.trim();
+    if(!url) return;
+    const btn = document.getElementById('ace-url-btn');
+    const status = document.getElementById('ace-status');
+    btn.disabled = true; btn.textContent = 'Reading…';
+    status.textContent = 'Reading ' + url + ' …';
+    try {
+      const res = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      if(!res.ok){
+        status.textContent = 'Couldn\'t read that site: ' + (data.error || 'unknown error');
+        return;
+      }
+      const input = document.getElementById('ace-chat-input');
+      input.value = data.intro || '';
+      input.focus();
+      status.textContent = 'Pre-filled from ' + (data.title || url) + '. Have a look, edit if needed, then hit Send.';
+    } catch(err){
+      status.textContent = "Couldn't reach the scraper. Make sure server.js is running. " + err;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Pre-fill from website';
+    }
   }
 
   async function aceSend(){

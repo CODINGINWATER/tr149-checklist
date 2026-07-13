@@ -1,0 +1,12 @@
+{
+  "name": "ace-demo-recorder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright script that records a walkthrough of the ACE onboarding + page tour.",
+  "scripts": {
+    "record": "node record-demo.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}

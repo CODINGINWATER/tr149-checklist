@@ -320,6 +320,127 @@ async function callOllama(messages, force) {
   return { ok: true, content };
 }
 
+// ---------------------------------------------------------------------------
+// Company-website scraper. Given a URL, pull the readable text off the page and
+// have the LLM turn it into a short, first-person company intro that pre-fills
+// the onboarding chat — so the user pastes a link instead of typing a blurb.
+// ---------------------------------------------------------------------------
+
+function decodeEntities(s) {
+  return (s || '')
+    .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>').replace(/&quot;/gi, '"')
+    .replace(/&#39;|&rsquo;|&lsquo;|&apos;/gi, "'").replace(/&mdash;|&ndash;/gi, '-')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
+}
+
+// Reject non-http(s) and obvious internal/loopback hosts (basic SSRF guard).
+function validateScrapeUrl(raw) {
+  let u;
+  try { u = new URL(/^https?:\/\//i.test(raw) ? raw : 'https://' + raw); } catch { return { ok: false, error: 'That does not look like a valid URL.' }; }
+  if (!/^https?:$/.test(u.protocol)) return { ok: false, error: 'Only http and https URLs are supported.' };
+  const host = u.hostname.toLowerCase();
+  if (host === 'localhost' || host.endsWith('.local')
+    || /^(127\.|10\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)
+    || host === '0.0.0.0' || host === '::1') {
+    return { ok: false, error: 'Internal or loopback addresses are not allowed.' };
+  }
+  return { ok: true, url: u.toString() };
+}
+
+async function fetchPageText(url) {
+  const res = await fetch(url, {
+    redirect: 'follow',
+    headers: { 'user-agent': 'Mozilla/5.0 (compatible; ACE-Onboarding-Scraper/1.0)' },
+    signal: AbortSignal.timeout(15000)
+  });
+  if (!res.ok) throw new Error(`The site responded with ${res.status}.`);
+  const html = await res.text();
+  const title = decodeEntities((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').trim();
+  const metaDesc = decodeEntities(
+    (html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i) || [])[1]
+    || (html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) || [])[1]
+    || '').trim();
+  const text = decodeEntities(
+    html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/<[^>]+>/g, ' ')
+  ).replace(/\s+/g, ' ').trim();
+  return { title, metaDesc, text };
+}
+
+// Minimal single-shot text completion across the same providers as the chat.
+async function callLLMPlain(system, user) {
+  if (PROVIDER === 'ollama') {
+    const res = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: MODEL, stream: false, think: OLLAMA_THINK, options: { num_predict: 400 }, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d?.error || `Ollama error (${res.status})`);
+    return (d?.message?.content || '').trim();
+  }
+  if (PROVIDER === 'anthropic') {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 400, system, messages: [{ role: 'user', content: user }] })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d?.error?.message || `Anthropic error (${res.status})`);
+    return (d?.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(' ').trim();
+  }
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${API_KEY}`, 'HTTP-Referer': SITE_URL, 'X-Title': SITE_NAME },
+    body: JSON.stringify({ model: MODEL, max_tokens: 400, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] })
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d?.error?.message || d?.error || `OpenRouter error (${res.status})`);
+  return (d?.choices?.[0]?.message?.content || '').trim();
+}
+
+const SCRAPE_SYSTEM = `You write a short, natural, first-person introduction that a staff member of a company would type into a chat to describe their business. Write 2 to 3 sentences covering what the company does, their main products or services, their industry, and who their customers are — based only on the website content provided. Use plain, conversational language, as if a real person typed it. Do not use em dashes or bullet points. Do not invent facts that are not supported by the content. Start with a natural greeting like "Hi! We're ...".`;
+
+async function handleScrape(req, res) {
+  let body = '';
+  req.on('data', (chunk) => { body += chunk; });
+  req.on('end', async () => {
+    withCors(res);
+    try {
+      if (PROVIDER !== 'ollama' && !API_KEY) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: `Server is missing an API key for provider "${PROVIDER}".` }));
+        return;
+      }
+      const { url } = JSON.parse(body || '{}');
+      const valid = validateScrapeUrl(String(url || '').trim());
+      if (!valid.ok) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: valid.error }));
+        return;
+      }
+
+      let page;
+      try {
+        page = await fetchPageText(valid.url);
+      } catch (err) {
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: `Could not read that site (${err.message}). Try a different page on the company's website.` }));
+        return;
+      }
+
+      const context = `Company website: ${valid.url}\nPage title: ${page.title}\nMeta description: ${page.metaDesc}\n\nPage text (truncated):\n${page.text.slice(0, 4000)}`;
+      const intro = await callLLMPlain(SCRAPE_SYSTEM, context);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ intro, title: page.title, url: valid.url }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+  });
+}
+
 function withCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
@@ -390,6 +511,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/chat' && req.method === 'POST') {
     handleChat(req, res);
+    return;
+  }
+  if (req.url === '/api/scrape' && req.method === 'POST') {
+    handleScrape(req, res);
     return;
   }
   if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
